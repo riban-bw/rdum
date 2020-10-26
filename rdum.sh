@@ -10,6 +10,12 @@
 # Seconds between refreshing icon
 REFRESH_PERIOD=600
 
+ICON_SECURITY=important
+ICON_NORMAL=warning
+ICON_NOUPDATES=messagebox_info
+ICON_REFRESHING=none
+#ICON_NOUPDATES==warning
+
 # Create a pipe for control of yad
 PIPE1=$(mktemp -u --tmpdir ${0##*/}.XXXXXXXX)
 mkfifo $PIPE1
@@ -32,12 +38,12 @@ function on_exit() {
 trap on_exit EXIT
 
 # Launch notification handler
-yad --no-middle --notification --listen --image none --command="echo show" --text="Checking for updates..." <&3 > /proc/$$/fd/4 &
+yad --no-middle --notification --listen --image $ICON_REFRESHING --text="Checking for updates..." <&3 > /proc/$$/fd/4 &
 while true
 do
   # Refresh update status from apt cache
   echo "tooltip:Checking for updates..." >&3
-  echo "icon:none" >&3
+  echo "icon:$ICON_REFRESHING" >&3
   apt list --upgradeable | grep -v ^Listing...$ | awk '{print $1}' > /tmp/rdup
   security=`grep security /tmp/rdup|wc -l`
   total=`cat /tmp/rdup|wc -l`
@@ -47,21 +53,24 @@ do
   # Update systray icon
   if [ $security -gt 0 ]
   then
-    echo "icon:important" >&3
+    echo "icon:$ICON_SECURITY" >&3
     echo "tooltip:$total updates available ($security security updates)" >&3
     echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh|Quit!echo quit" >&3
+    echo "action:echo show" >&3
     echo "visible:true" >&3
   elif [ $total -gt 0 ]
   then
-    echo "icon:warning" >&3
+    echo "icon:$ICON_NORMAL" >&3
     echo "tooltip:$total updates available" >&3
     echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh|Quit!echo quit" >&3
+    echo "action:echo show" >&3
     echo "visible:true" >&3
   else
-    echo "icon:none" >&3
+    echo "icon:$ICON_NOUPDATES" >&3
     echo "tooltip:System is up to date" >&3
-    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Refresh status!echo refresh|Quit!echo quit" >&3
-    echo "visible:false" >&3
+    echo "action:" >&3
+    echo "menu:Check for new updates!echo update|Refresh status!echo refresh|Quit!echo quit" >&3
+#    echo "visible:false" >&3
   fi
 
   # Wait for next command
@@ -73,13 +82,15 @@ do
     xterm -e pkexec apt-get update
   elif [ " $command " == " upgrade " ]
   then
+      echo "icon:$ICON_REFRESHING" >&3
       xterm -e pkexec apt-get dist-upgrade -q
   elif [ " $command " == " show " ]
   then
     yad --title "Available updates" --center --height 200 --window-icon=system_section --button=Cancel --button="Install updates":1 --list --column "Software package name" $(awk -F'/' '{print $1}' /tmp/rdup) > /proc/$$/fd/4
     if [ $? -eq 1 ]
     then
-      xterm -e pkexec apt full-upgrade -q
+      echo "icon:$ICON_REFRESHING" >&3
+      xterm -e pkexec apt-get dist-upgrade -q
     fi
   elif [ " $command " == " quit " ]
   then
