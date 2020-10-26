@@ -5,7 +5,7 @@
 # Right click to show context menu allowing installation of updates.
 # Relies on background task to periodically query for updates, e.g. cron job performing apt update
 #
-# Dependencies: yad xterm
+# Dependencies: yad xterm awk bash
 
 # Seconds between refreshing icon
 REFRESH_PERIOD=600
@@ -43,18 +43,18 @@ do
   then
     echo "icon:important" >&3
     echo "tooltip:$total updates available ($security security updates)" >&3
-    echo "menu:Check for updates!echo update|Update system!echo upgrade|Refresh!echo refresh" >&3
+    echo "menu:Check for updates!echo update|Show available updates!echo show|Install updates!echo upgrade|Refresh!echo refresh" >&3
     echo "visible:true" >&3
   elif [ $total -gt 0 ]
   then
     echo "icon:warning" >&3
     echo "tooltip:$total updates available" >&3
-    echo "menu:Check for updates!echo update|Update system!echo upgrade|Refresh!echo refresh" >&3
+    echo "menu:Check for updates!echo update|Show available updates!echo show|Install updates!echo upgrade|Refresh!echo refresh" >&3
     echo "visible:true" >&3
   else
     echo "icon:none" >&3
     echo "tooltip:System is up to date" >&3
-    echo "menu:Check for updates!echo update|Refresh!echo refresh" >&3
+    echo "menu:Check for updates!echo update|Show available updates!echo show|Refresh!echo refresh" >&3
     echo "visible:false" >&3
   fi
   read -t $REFRESH_PERIOD command <&4
@@ -64,5 +64,8 @@ do
   elif [ " $command " == " upgrade " ]
   then
       xterm -e pkexec apt upgrade
+  elif [ " $command " == " show " ]
+  then
+    yad --title "Available updates" --center --list --column "Software package name" $(awk -F'/' '{print $1}' /tmp/rdup)
   fi
 done
