@@ -32,32 +32,42 @@ function on_exit() {
 trap on_exit EXIT
 
 # Launch notification handler
-yad --no-middle --notification --listen --image none --text "Checking for updates..." <&3 > /proc/$$/fd/4 &
+yad --no-middle --notification --listen --image none --command="echo show" --text="Checking for updates..." <&3 > /proc/$$/fd/4 &
 while true
 do
+  # Refresh update status from apt cache
   echo "tooltip:Checking for updates..." >&3
+  echo "icon:none" >&3
   apt list --upgradeable | grep -v ^Listing...$ | awk '{print $1}' > /tmp/rdup
   security=`grep security /tmp/rdup|wc -l`
   total=`cat /tmp/rdup|wc -l`
+  # Consume any commands recieved during previous processing
+  read -t 1 -N 10000 <&4
+
+  # Update systray icon
   if [ $security -gt 0 ]
   then
     echo "icon:important" >&3
     echo "tooltip:$total updates available ($security security updates)" >&3
-    echo "menu:Check for updates!echo update|Show available updates!echo show|Install updates!echo upgrade|Refresh!echo refresh" >&3
+    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh" >&3
     echo "visible:true" >&3
   elif [ $total -gt 0 ]
   then
     echo "icon:warning" >&3
     echo "tooltip:$total updates available" >&3
-    echo "menu:Check for updates!echo update|Show available updates!echo show|Install updates!echo upgrade|Refresh!echo refresh" >&3
+    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh" >&3
     echo "visible:true" >&3
   else
     echo "icon:none" >&3
     echo "tooltip:System is up to date" >&3
-    echo "menu:Check for updates!echo update|Show available updates!echo show|Refresh!echo refresh" >&3
+    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Refresh status!echo refresh" >&3
     echo "visible:false" >&3
   fi
+
+  # Wait for next command
   read -t $REFRESH_PERIOD command <&4
+  
+  # Process command
   if [ " $command " == " update " ]
   then
     xterm -e pkexec apt update
@@ -66,6 +76,10 @@ do
       xterm -e pkexec apt upgrade
   elif [ " $command " == " show " ]
   then
-    yad --title "Available updates" --center --list --column "Software package name" $(awk -F'/' '{print $1}' /tmp/rdup)
+    yad --title "Available updates" --center --height 200 --window-icon=system_section --button=Cancel --button="Install updates":1 --list --column "Software package name" $(awk -F'/' '{print $1}' /tmp/rdup) > /proc/$$/fd/4
+    if [ $? -eq 1 ]
+    then
+      xterm -e pkexec apt upgrade
+    fi
   fi
 done
