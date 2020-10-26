@@ -11,6 +11,7 @@ Right clicking on the system tray icon shows a menu allowing:
 * Show list of available updates (and offer to install them - same as left click on icon)
 * Install all available updates
 * Refresh the status of the system tray icon (in case background check has found updates)
+* Quit the update monitor
 
 The icon refreshes its status every 10 minutes but depends on a background task to check for new updates automatically. Status is also refreshed after triggering any action from the system tray icon. Whilst refresh is occuring the application ignores commands.
 

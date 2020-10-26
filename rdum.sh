@@ -5,7 +5,7 @@
 # Right click to show context menu allowing installation of updates.
 # Relies on background task to periodically query for updates, e.g. cron job performing apt update
 #
-# Dependencies: yad xterm awk bash
+# Dependencies: yad xterm awk bash apt apt-get
 
 # Seconds between refreshing icon
 REFRESH_PERIOD=600
@@ -49,18 +49,18 @@ do
   then
     echo "icon:important" >&3
     echo "tooltip:$total updates available ($security security updates)" >&3
-    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh" >&3
+    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh|Quit!echo quit" >&3
     echo "visible:true" >&3
   elif [ $total -gt 0 ]
   then
     echo "icon:warning" >&3
     echo "tooltip:$total updates available" >&3
-    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh" >&3
+    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|Refresh status!echo refresh|Quit!echo quit" >&3
     echo "visible:true" >&3
   else
     echo "icon:none" >&3
     echo "tooltip:System is up to date" >&3
-    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Refresh status!echo refresh" >&3
+    echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Refresh status!echo refresh|Quit!echo quit" >&3
     echo "visible:false" >&3
   fi
 
@@ -70,16 +70,19 @@ do
   # Process command
   if [ " $command " == " update " ]
   then
-    xterm -e pkexec apt update
+    xterm -e pkexec apt-get update
   elif [ " $command " == " upgrade " ]
   then
-      xterm -e pkexec apt upgrade
+      xterm -e pkexec apt-get dist-upgrade -q
   elif [ " $command " == " show " ]
   then
     yad --title "Available updates" --center --height 200 --window-icon=system_section --button=Cancel --button="Install updates":1 --list --column "Software package name" $(awk -F'/' '{print $1}' /tmp/rdup) > /proc/$$/fd/4
     if [ $? -eq 1 ]
     then
-      xterm -e pkexec apt upgrade
+      xterm -e pkexec apt full-upgrade -q
     fi
+  elif [ " $command " == " quit " ]
+  then
+    break
   fi
 done
