@@ -24,4 +24,4 @@ This is a simple implementation of the version of the update notifier that I fee
 
 I would prefer to remove the xterm dependency but for now it serves a purpose.
 
-I have added this to `~/.e/e/applications/startup/startupcommands` on my Bodhi Linux laptop and that works but it may be better to package this as an application that distros understand.
+I have added this to `~/.e/e/applications/startup/startupcommands` on my Bodhi Linux laptop and that works but it may be better to package this as an application that distros understand. I have added a .deb package to the reporitory.
