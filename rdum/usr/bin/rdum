@@ -89,6 +89,8 @@ do
     # Process command
     if [ " $command " == " update " ]
     then
+        echo "tooltip:Checking for updates..." >&3
+        echo "icon:$ICON_REFRESHING" >&3
         xterm -e pkexec apt-get update
     elif [ " $command " == " upgrade " ]
     then
