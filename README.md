@@ -16,9 +16,12 @@ Right clicking on the system tray icon shows a menu allowing:
 The icon refreshes its status every 10 minutes but depends on a background task to check for new updates automatically. Status is also refreshed after triggering any action from the system tray icon. Whilst refresh is occuring the application ignores commands.
 
 Depends on:
-* yud - Provides the system tray interface
+* yad - Provides the system tray interface
 * xterm - Displays apt commands
 * awk - Decoding, etc.
+* bash - This is a bash script
+* apt - Get update status
+* apt-get - Performs updates and upgrades
 
 This is a simple implementation of the version of the update notifier that I feel was optimal. As a desktop / GUI user I want to know when updates are available, what type of update they are (security / normal) and be able to simply install the updates. I also want to be able to review the list of available updates. There are other update notifiers available but this script uses very few resources with few dependencies. I was inspired to write this because there isn't an update notifier installed by default on Bodhi Linux (a great, lightweight gnu/linux distrubution) and some users were asking for a GUI method of performing updates.
 
