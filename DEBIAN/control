@@ -1,0 +1,12 @@
+Package: rdum
+Version: 0.1
+Architecture: all
+Priority: optional
+Depends: yad, xterm, apt
+Suggests: apt-config-auto-update
+Section: utils
+Maintainer: Brian Walton <brian@riban.co.uk>
+Description: Systray update notifier
+ Shows available updates in system tray and allows install of updates.
+ Low resource implementation indicating type of updates available, 
+ e.g. security and quantity of updates available.

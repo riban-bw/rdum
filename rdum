@@ -12,6 +12,7 @@ VERSION=0.1
 # Seconds between refreshing icon
 REFRESH_PERIOD=600
 
+#TODO Use better icons
 ICON_SECURITY=important
 ICON_NORMAL=warning
 ICON_NOUPDATES=messagebox_info
@@ -20,20 +21,20 @@ ICON_REBOOT=reboot-notifier
 MENU_TEMPLATE="Refresh status!echo refresh|About!echo about|Quit!echo quit"
 
 # Create a pipe for control of yad
-PIPE1=$(mktemp -u --tmpdir ${0##*/}.XXXXXXXX)
-mkfifo $PIPE1
+PIPE1=$(mktemp -u --tmpdir "${0##*/}.XXXXXXXX")
+mkfifo "$PIPE1"
 # Add descriptor to pipe
-exec 3<> $PIPE1
-PIPE2=$(mktemp -u --tmpdir ${0##*/}.XXXXXXXX)
-mkfifo $PIPE2
+exec 3<> "$PIPE1"
+PIPE2=$(mktemp -u --tmpdir "${0##*/}.XXXXXXXX")
+mkfifo "$PIPE2"
 # Add descriptor to pipe
-exec 4<> $PIPE2
+exec 4<> "$PIPE2"
 
 # Function to run on exit
 function on_exit() {
   echo "quit" >&3
-  rm -f $PIPE1
-  rm -f $PIPE2
+  rm -f "$PIPE1"
+  rm -f "$PIPE2"
   rm -f /tmp/rdup
 }
 
@@ -55,18 +56,18 @@ do
         echo "tooltip:Checking for updates..." >&3
         echo "icon:$ICON_REFRESHING" >&3
         apt list --upgradeable | grep -v ^Listing...$ | awk '{print $1}' > /tmp/rdup
-        security=`grep security /tmp/rdup|wc -l`
-        total=`cat /tmp/rdup|wc -l`
+        security=$(grep -c security /tmp/rdup)
+        total=$(wc -l < /tmp/rdup)
 
         # Update systray icon
-        if [ $security -gt 0 ]
+        if [ "$security" -gt 0 ]
         then
             echo "icon:$ICON_SECURITY" >&3
             echo "tooltip:$total updates available ($security security updates)" >&3
             echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|$MENU_TEMPLATE" >&3
             echo "action:echo show" >&3
             echo "visible:true" >&3
-        elif [ $total -gt 0 ]
+        elif [ "$total" -gt 0 ]
         then
             echo "icon:$ICON_NORMAL" >&3
             echo "tooltip:$total updates available" >&3
@@ -82,9 +83,9 @@ do
         fi
     fi
     # Consume any commands recieved during previous processing
-    read -t 1 -N 10000 <&4
+    read -rt 1 -N 10000 <&4
     # Wait for next command
-    read -t $REFRESH_PERIOD command <&4
+    read -rt $REFRESH_PERIOD command <&4
 
     # Process command
     if [ " $command " == " update " ]
@@ -98,7 +99,7 @@ do
         xterm -e pkexec apt-get dist-upgrade -q
     elif [ " $command " == " show " ]
     then
-        yad --title "Available updates" --center --height 200 --window-icon=system_section --button=Cancel --button="Install updates":1 --list --column "Software package name" $(awk -F'/' '{print $1}' /tmp/rdup) > /proc/$$/fd/4
+        yad --title "Available updates" --center --height 200 --window-icon=system_section --button=Cancel --button="Install updates":1 --list --column "Software package name" "$(awk -F'/' '{print $1}' /tmp/rdup)" > /proc/$$/fd/4
         if [ $? -eq 1 ]
         then
             echo "icon:$ICON_REFRESHING" >&3

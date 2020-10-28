@@ -1,0 +1,15 @@
+.TH man 1 "10 Oct 2020" "1.0" "rdum man page"
+.SH NAME
+rdum \- shows update notification in systray
+.SH SYNOPSIS
+rdum
+.SH DESCRIPTION
+rdum adds an icon to the system tray on a FreeDesktop compliant desktop. The icon shows whether updates are available and if any are security updates. Right clicking on the icon shows a menu allowing further control.
+.SH OPTIONS
+rdum does not take any options.
+.SH SEE ALSO
+apt(8), apt-get(8), yad(1)
+.SH BUGS
+No known bugs.
+.SH AUTHOR
+Brian Walton (brian@riban.co.uk)
