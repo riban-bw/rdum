@@ -92,18 +92,18 @@ do
     then
         echo "tooltip:Checking for updates..." >&3
         echo "icon:$ICON_REFRESHING" >&3
-        xterm -e pkexec apt-get update
+        xterm -title Updates -e pkexec apt-get update
     elif [ " $command " == " upgrade " ]
     then
         echo "icon:$ICON_REFRESHING" >&3
-        xterm -e pkexec apt-get dist-upgrade -q
+        xterm -title Updates  -e pkexec apt-get dist-upgrade -q
     elif [ " $command " == " show " ]
     then
         yad --title "Available updates" --center --height 200 --window-icon=system_section --button=Cancel --button="Install updates":1 --list --column "Software package name" "$(awk -F'/' '{print $1}' /tmp/rdup)" > /proc/$$/fd/4
         if [ $? -eq 1 ]
         then
             echo "icon:$ICON_REFRESHING" >&3
-            xterm -e pkexec apt-get dist-upgrade -q
+            xterm -title Updates  -e pkexec apt-get dist-upgrade -q
         fi
     elif [ " $command " == " quit " ]
     then
