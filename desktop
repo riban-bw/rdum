@@ -1,6 +1,7 @@
 [Desktop Entry]
 Name=Update Notifier
 GenericName=Update Notifier
+Comment=Systray update notification
 Icon=update-manager
 Exec=rdum
 Terminal=false

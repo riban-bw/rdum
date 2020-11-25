@@ -7,7 +7,7 @@
 #
 # Dependencies: yad xterm awk bash apt apt-get
 
-VERSION=0.1
+VERSION=0.2
 
 # Seconds between refreshing icon
 REFRESH_PERIOD=600
@@ -19,12 +19,26 @@ ICON_NOUPDATES=messagebox_info
 ICON_REFRESHING=none
 ICON_REBOOT=reboot-notifier
 MENU_TEMPLATE="Refresh status!echo refresh|About!echo about|Quit!echo quit"
+MENU_SHOW_NOUPDATE="Hide when no updates available!echo toggle_show"
+SHOW_NOUPDATES=1
+if [ -f ~/.config/rdum ]
+then
+  SHOW_NOUPDATES=0
+fi
+
+# Try to stop any existing running instances
+# Actually want to signal to existing instance to show icon so that config can be performed
+for pid in $(pgrep -u $USER rdum | grep -v $$)
+do
+  kill $pid > /dev/null 2>&1
+done
 
 # Create a pipe for control of yad
 PIPE1=$(mktemp -u --tmpdir "${0##*/}.XXXXXXXX")
 mkfifo "$PIPE1"
 # Add descriptor to pipe
 exec 3<> "$PIPE1"
+# Create a pipe for control of rdum
 PIPE2=$(mktemp -u --tmpdir "${0##*/}.XXXXXXXX")
 mkfifo "$PIPE2"
 # Add descriptor to pipe
@@ -38,8 +52,14 @@ function on_exit() {
   rm -f /tmp/rdup
 }
 
+# Function to run on USR1 signal
+function on_usr1() {
+	SHOW_NOUPDATES=1
+}
+
 # Register for exit signal
 trap on_exit EXIT
+trap on_usr1 SIGUSR1
 
 # Launch notification handler
 yad --no-middle --notification --listen --image $ICON_REFRESHING --text="Checking for updates..." <&3 > /proc/$$/fd/4 &
@@ -50,7 +70,7 @@ do
     then
         echo "tooltip:Reboot required" >&3
         echo "icon:$ICON_REBOOT" >&3
-        echo "menu:Reboot!echo reboot|$MENU_TEMPLATE" >&3
+        echo "menu:Reboot!echo reboot|$MENU_TEMPLATE|$MENU_SHOW_NOUPDATE" >&3
     else
         # Refresh update status from apt cache
         echo "tooltip:Checking for updates..." >&3
@@ -64,22 +84,27 @@ do
         then
             echo "icon:$ICON_SECURITY" >&3
             echo "tooltip:$total updates available ($security security updates)" >&3
-            echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|$MENU_TEMPLATE" >&3
+            echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|$MENU_TEMPLATE||$MENU_SHOW_NOUPDATE" >&3
             echo "action:echo show" >&3
             echo "visible:true" >&3
         elif [ "$total" -gt 0 ]
         then
             echo "icon:$ICON_NORMAL" >&3
             echo "tooltip:$total updates available" >&3
-            echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|$MENU_TEMPLATE" >&3
+            echo "menu:Check for new updates!echo update|Show $total available updates!echo show|Install updates!echo upgrade|$MENU_TEMPLATE||$MENU_SHOW_NOUPDATE" >&3
             echo "action:echo show" >&3
             echo "visible:true" >&3
         else
             echo "icon:$ICON_NOUPDATES" >&3
             echo "tooltip:System is up to date" >&3
             echo "action:" >&3
-            echo "menu:Check for new updates!echo update|$MENU_TEMPLATE" >&3
-            #    echo "visible:false" >&3
+            echo "menu:Check for new updates!echo update|$MENU_TEMPLATE||$MENU_SHOW_NOUPDATE" >&3
+            if [ $SHOW_NOUPDATES -eq 1 ]
+            then
+                echo "visible:true" >&3
+            else
+                echo "visible:false" >&3
+            fi
         fi
     fi
     # Consume any commands recieved during previous processing
@@ -115,5 +140,17 @@ do
 	elif [ " $command " == " about " ]
 	then
 		yad --title "About..." --center --button=Close --text "riban Update Notifier\n\nVersion: $VERSION\nCopyright: riban (2020)\nAuthor: Brian Walton"
+    elif [ " $command " == " toggle_show " ]
+    then
+		if [ $SHOW_NOUPDATES -eq 1 ]
+		then
+			SHOW_NOUPDATES=0
+			MENU_SHOW_NOUPDATE="Show when no updates available!echo toggle_show"
+			touch ~/.config/rdum
+		else
+			SHOW_NOUPDATES=1
+			MENU_SHOW_NOUPDATE="Hide when no updates available!echo toggle_show"
+			rm -rf ~/.config/rdum
+		fi
     fi
 done
