@@ -1,5 +1,5 @@
 Package: rdum
-Version: 0.2
+Version: 0.3
 Architecture: all
 Priority: optional
 Depends: yad, xterm, apt

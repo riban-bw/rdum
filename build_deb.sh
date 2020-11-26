@@ -8,7 +8,7 @@ then
   PACKAGE=$1
 fi
 
-rm -r deb
+rm -rf deb
 mkdir -p "deb/usr/bin"
 mkdir -p "deb/usr/share/applications"
 mkdir -p "deb/usr/share/doc/$PACKAGE"
