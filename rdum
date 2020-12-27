@@ -7,14 +7,14 @@
 #
 # Dependencies: yad xterm awk bash apt apt-get
 
-VERSION=0.2
+VERSION=0.3
 
 # Seconds between refreshing icon
 REFRESH_PERIOD=600
 
 #TODO Use better icons
-ICON_SECURITY=important
-ICON_NORMAL=warning
+ICON_SECURITY=software-update-urgent
+ICON_NORMAL=software-update-available
 ICON_NOUPDATES=messagebox_info
 ICON_REFRESHING=none
 ICON_REBOOT=reboot-notifier
