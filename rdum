@@ -15,8 +15,8 @@ REFRESH_PERIOD=600
 #TODO Use better icons
 ICON_SECURITY=software-update-urgent
 ICON_NORMAL=software-update-available
-ICON_NOUPDATES=messagebox_info
-ICON_REFRESHING=none
+ICON_NOUPDATES=dialog-info
+ICON_REFRESHING=dialog-question
 ICON_REBOOT=reboot-notifier
 MENU_TEMPLATE="Refresh status!echo refresh|About!echo about|Quit!echo quit"
 MENU_SHOW_NOUPDATE="Hide when no updates available!echo toggle_show"
